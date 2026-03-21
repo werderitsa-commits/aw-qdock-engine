@@ -63,9 +63,17 @@ async def lifespan(app: FastAPI):
         r = None
 
     logger.info(f"Initializing AW-Qdock Folding Engine on {device}...")
+    
+    # SYSTEM CRITICAL: Set persistent volume path for 30GB ESMFold weights
+    # This prevents the 'No space left on device' error by using a mounted RunPod Network Volume
+    PERSISTENT_MODELS_DIR = os.getenv("PERSISTENT_MODELS_DIR", "/models")
+    os.makedirs(PERSISTENT_MODELS_DIR, exist_ok=True)
+    os.environ['TORCH_HOME'] = PERSISTENT_MODELS_DIR
+    os.environ['ESM_DIR'] = PERSISTENT_MODELS_DIR
+    
     if esm:
         try:
-            logger.info("Downloading/Loading 30GB ESMFold v1 weights into RAM... (This may cause RunPod OOM if RAM < 32GB)")
+            logger.info(f"Loading/Downloading 30GB ESMFold v1 weights into {PERSISTENT_MODELS_DIR} (RAM: 32GB+ required)")
             model = esm.pretrained.esmfold_v1()
             model = model.eval().to(device)
             logger.success("AW-FOLD ready (Real ESMFold successfully loaded onto device).")

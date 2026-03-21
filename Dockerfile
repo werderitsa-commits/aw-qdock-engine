@@ -24,11 +24,8 @@ RUN pip install --no-cache-dir \
 WORKDIR /app
 COPY app.py quantum_engine.py /app/
 
-# Pre-download the massive ESMFold weights to bake directly into the Docker image
-# This strictly guarantees the RunPod worker will not crash or timeout during startup
-RUN python -c "import torch; import esm; model = esm.pretrained.esmfold_v1()"
-
 # Expose the explicit API port
+# Finalized for lightweight GitHub builds and persistent volume mounting
 ENV PORT=8000
 EXPOSE 8000
 

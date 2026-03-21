@@ -1,0 +1,14 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+pydantic==2.5.3
+numpy==1.26.3
+redis==5.0.1
+stripe==7.14.0
+loguru==0.7.2
+qiskit==0.45.2
+qiskit-nature==0.7.1
+qiskit-algorithms==0.2.2
+qiskit-aer==0.13.2
+dwave-ocean-sdk==6.9.0
+pennylane==0.34.0
+httpx==0.26.0

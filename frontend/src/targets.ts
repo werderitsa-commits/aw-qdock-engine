@@ -26,8 +26,8 @@ export const getAuthHeader = async (): Promise<Record<string, string>> => {
 };
 
 // 3. BACKEND CONNECTIVITY
-export const BACKEND_URL = "http://localhost:8000/dock";
-export const HEALTH_URL = "http://localhost:8000/health";
+export const BACKEND_URL = "https://aw-qdock-api-production.up.railway.app/dock";
+export const HEALTH_URL = "https://aw-qdock-api-production.up.railway.app/ping";
 
 // 4. DATA MODELS
 export type TargetEntry = {
