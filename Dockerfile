@@ -1,7 +1,14 @@
-FROM nvcr.io/nvidia/pytorch:24.01-py3
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
-# Install dependencies (Standard ESMFold + Quantum SDKs)
-RUN pip install --no-cache-dir \
+# Lightweight System Dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install High-Performance Folding Stack
+RUN pip3 install --no-cache-dir \
     fair-esm[esmfold]==2.0.0 \
     fastapi \
     uvicorn \
