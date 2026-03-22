@@ -27,6 +27,7 @@ import UserManual from './components/UserManual';
 import Auth from './components/Auth';
 import Settings from './components/Settings';
 import MissionControl from './components/MissionControl';
+import LiveLog from './components/LiveLog';
 import { BACKEND_URL, HEALTH_URL, TARGET_DATABASE, TARGET_CATEGORIES, type TargetEntry } from './targets';
 
 interface DockResponse {
@@ -341,7 +342,7 @@ export default function App() {
           <SidebarSection title="DOCKING ENGINE">
              <div className="grid grid-cols-1 gap-2">
                 {[
-                   { id: 'aw-qdock', name: 'AW_QDOCK v1 (Proprietary)', icon: Cpu, quantum: true },
+                   { id: 'aw-qdock', name: 'Primary Compute (Proprietary)', icon: Cpu, quantum: true },
                 ].map(eng => {
                    const Icon = eng.icon;
                    return (
@@ -577,6 +578,11 @@ export default function App() {
               targetPdbData={customReceptorPdb}
               targetPdbId={selectedTarget?.pdb}
             />
+          </div>
+
+          {/* Persistent Job Log on Canvas */}
+          <div className="tour-live-log mt-auto">
+             <LiveLog backendUrl={BACKEND_URL} />
           </div>
         </section>
 

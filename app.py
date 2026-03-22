@@ -150,11 +150,11 @@ async def dock_peptide(request: DockRequest):
             try:
                 log_entry = {
                     "timestamp": time.time(),
-                    "engine": engine,
+                    "engine": "Primary Compute" if engine == "Modal" else "Secondary Compute",
                     "sequence": request.sequence[:20] + "...",
                     "duration": duration,
                     "status": status,
-                    "cost": 0.0001 * duration if engine == "Modal" else 0.0003 * duration # Estimates for A10G/L4
+                    "cost": 0.0001 * duration if engine == "Modal" else 0.0003 * duration # Estimates
                 }
                 r.lpush("aw_qdock_logs", json.dumps(log_entry))
                 r.ltrim("aw_qdock_logs", 0, 99) # Keep last 100 tasks
@@ -284,7 +284,7 @@ async def get_stats():
     
     # Aggregate summaries
     total_tasks = len(parsed_logs)
-    modal_count = sum(1 for l in parsed_logs if l.get('engine') == 'Modal')
+    primary_count = sum(1 for l in parsed_logs if l.get('engine') == 'Primary Compute')
     
     # Safe mean
     durations = [l.get('duration', 0) for l in parsed_logs]
@@ -294,7 +294,7 @@ async def get_stats():
     return {
         "summary": {
             "total_tasks": total_tasks,
-            "modal_utilization": f"{(modal_count/total_tasks)*100:.1f}%" if total_tasks > 0 else "0%",
+            "compute_utilization": f"{(primary_count/total_tasks)*100:.1f}%" if total_tasks > 0 else "0%",
             "avg_latency": f"{avg_latency:.2f}s",
             "total_estimated_cost": f"${total_cost:.4f}"
         },

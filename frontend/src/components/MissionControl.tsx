@@ -1,21 +1,22 @@
+```
 import { useState, useEffect } from 'react';
 import { Activity, Zap, ShieldCheck, Clock, DollarSign, Database, Server, RefreshCw, X, Terminal } from 'lucide-react';
+
+interface Task {
+  timestamp: number;
+  engine: string;
+  sequence: string;
+  duration: number;
+  status: string;
+}
 
 interface Stats {
   summary: {
     total_tasks: number;
-    modal_utilization: string;
+    compute_utilization: string;
     avg_latency: string;
-    total_estimated_cost: string;
   };
-  recent_tasks: Array<{
-    timestamp: number;
-    engine: string;
-    sequence: string;
-    duration: number;
-    status: string;
-    cost: number;
-  }>;
+  recent_tasks: Task[];
   error?: string;
 }
 
@@ -36,7 +37,7 @@ export default function MissionControl({ isOpen, onClose, backendUrl }: { isOpen
     } catch (err: any) {
       console.error("Failed to fetch mission control data:", err);
       // We don't set stats here so it keeps showing loading/standby or error
-      if (!stats) setStats({ error: err.message, summary: null, recent_tasks: [] } as any);
+      if (!stats) setStats({ error: err.message, summary: { total_tasks: 0, compute_utilization: '0%', avg_latency: '0.00s' }, recent_tasks: [] });
     } finally {
       setLoading(false);
     }
@@ -91,27 +92,27 @@ export default function MissionControl({ isOpen, onClose, backendUrl }: { isOpen
                   <div className="absolute top-0 right-0 p-2 opacity-10">
                      <Zap className="w-10 h-10 text-cyan-400" />
                   </div>
-                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Total Tasks</span>
+                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Docking Jobs</span>
                   <span className="text-2xl font-black text-white">{stats?.summary?.total_tasks || 0}</span>
                   <div className="flex items-center gap-1.5 mt-1">
                      <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                     <span className="text-[8px] text-emerald-500 font-black uppercase tracking-widest">Live Feed</span>
+                     <span className="text-[8px] text-emerald-500 font-black uppercase tracking-widest">Active Feed</span>
                   </div>
                </div>
                
                <div className="p-4 bg-white/5 border border-white/5 flex flex-col gap-2 relative group hover:border-indigo-500/30 transition-colors overflow-hidden">
                   <div className="absolute top-0 right-0 p-2 opacity-10">
-                     <DollarSign className="w-10 h-10 text-indigo-400" />
+                     <Server className="w-10 h-10 text-indigo-400" />
                   </div>
-                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Est. Cost</span>
-                  <span className="text-2xl font-black text-white">{stats?.summary?.total_estimated_cost || '$0.00'}</span>
-                  <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest mt-1">Pay-Per-Use (Modal)</span>
+                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Compute Utilization</span>
+                  <span className="text-2xl font-black text-white">{stats?.summary?.compute_utilization || '0%'}</span>
+                  <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest mt-1">Resource Allocation</span>
                </div>
             </div>
 
             <div className="p-4 bg-white/5 border border-white/5 flex flex-col gap-2 relative group hover:border-amber-500/30 transition-colors">
                <div className="flex justify-between items-center mb-2">
-                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Engine Latency</span>
+                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Average Process Time</span>
                   <Clock className="w-3.5 h-3.5 text-amber-500" />
                </div>
                <div className="flex items-end gap-2">
@@ -120,7 +121,7 @@ export default function MissionControl({ isOpen, onClose, backendUrl }: { isOpen
                   </span>
                </div>
                <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest mt-2 leading-relaxed">
-                  Including cold-starts and GPU scheduling latency. Target: &lt;60s
+                  Total wall-clock time including queuing and structural convergence.
                </p>
             </div>
 
@@ -133,23 +134,23 @@ export default function MissionControl({ isOpen, onClose, backendUrl }: { isOpen
                         <Server className="w-4 h-4 text-cyan-400" />
                         <span className="text-[10px] font-black text-white uppercase tracking-widest">Compute Breakdown</span>
                      </div>
-                     <span className="text-[10px] font-black text-cyan-400 tabular-nums uppercase">{stats?.summary.modal_utilization || '100%'} Modal</span>
+                     <span className="text-[10px] font-black text-cyan-400 tabular-nums uppercase">{stats?.summary.compute_utilization || '100%'} Primary</span>
                    </div>
                    
                    <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex justify-between text-[9px] text-zinc-500 font-black uppercase tracking-widest">
-                           <span>Primary (Modal A10G)</span>
+                           <span>Primary (A10G)</span>
                            <span className="text-zinc-400">OPTIMAL</span>
                         </div>
                         <div className="h-1.5 bg-black/40 border border-white/5 overflow-hidden">
-                           <div className="h-full bg-cyan-500 shadow-[0_0_10px_#06b6d4] transition-all duration-1000" style={{ width: stats?.summary.modal_utilization || '0%' }} />
+                           <div className="h-full bg-cyan-500 shadow-[0_0_10px_#06b6d4] transition-all duration-1000" style={{ width: stats?.summary.compute_utilization || '0%' }} />
                         </div>
                       </div>
 
                       <div className="space-y-2 opacity-50">
                         <div className="flex justify-between text-[9px] text-zinc-500 font-black uppercase tracking-widest">
-                           <span>Backup (RunPod L4)</span>
+                           <span>Secondary (L4)</span>
                            <span className="text-zinc-600">IDLE</span>
                         </div>
                         <div className="h-1.5 bg-black/40 border border-white/5 overflow-hidden">
@@ -186,16 +187,24 @@ export default function MissionControl({ isOpen, onClose, backendUrl }: { isOpen
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
+               <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-2 px-1">
+                  <span className="w-16">Time</span>
+                  <span className="w-16">Source</span>
+                  <span className="flex-1">Sequence Segment</span>
+                  <span>Duration</span>
+               </div>
                {stats?.recent_tasks && stats.recent_tasks.length > 0 ? (
                  stats.recent_tasks.map((task, i) => (
                     <div key={i} className="flex items-center gap-4 p-4 border border-white/5 bg-black/20 hover:bg-white/[0.03] transition-colors group">
-                       <div className={`w-1 h-8 ${task.engine === 'Modal' ? 'bg-cyan-500 shadow-[0_0_10px_#06b6d4]' : 'bg-indigo-500 shadow-[0_0_10px_#6366f1]'}`} />
+                       <div className={`w-1 h-8 ${task.engine === 'Primary' ? 'bg-cyan-500 shadow-[0_0_10px_#06b6d4]' : 'bg-indigo-500 shadow-[0_0_10px_#6366f1]'}`} />
                        
-                       <div className="flex flex-col gap-1 w-24">
+                       <div className="flex flex-col gap-1 w-16">
                           <span className="text-[8px] font-black text-zinc-600 uppercase tabular-nums">
                             {new Date(task.timestamp * 1000).toLocaleTimeString()}
                           </span>
-                          <span className={`text-[9px] font-black uppercase tracking-widest ${task.engine === 'Modal' ? 'text-cyan-400' : 'text-indigo-400'}`}>
+                       </div>
+                       <div className="flex flex-col gap-1 w-16">
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${task.engine === 'Primary' ? 'text-cyan-400' : 'text-indigo-400'}`}>
                             {task.engine}
                           </span>
                        </div>
@@ -203,11 +212,11 @@ export default function MissionControl({ isOpen, onClose, backendUrl }: { isOpen
                        <div className="flex flex-col gap-1 flex-1">
                           <span className="text-[10px] font-mono font-black text-white/90 truncate max-w-xs">{task.sequence}</span>
                           <div className="flex items-center gap-3">
-                             <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest">Latency: {task.duration.toFixed(2)}s</span>
-                             {task.cost > 0 && (
-                               <span className="text-[8px] text-emerald-500/70 font-black uppercase tracking-widest italic">EST. COST: ${(task.cost).toFixed(4)}</span>
-                             )}
+                             <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest"></span>
                           </div>
+                       </div>
+                       <div className="flex items-center gap-2">
+                          <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest">{task.duration.toFixed(2)}s</span>
                        </div>
 
                        <div className="flex items-center gap-2">
