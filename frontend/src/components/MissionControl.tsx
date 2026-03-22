@@ -1,6 +1,5 @@
-```
 import { useState, useEffect } from 'react';
-import { Activity, Zap, ShieldCheck, Clock, DollarSign, Database, Server, RefreshCw, X, Terminal } from 'lucide-react';
+import { Activity, Zap, ShieldCheck, Clock, Database, Server, RefreshCw, X, Terminal } from 'lucide-react';
 
 interface Task {
   timestamp: number;
