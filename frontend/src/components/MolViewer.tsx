@@ -57,6 +57,19 @@ export default function MolViewer({ pdbId, sequence, pdbData, plddt, isLoading, 
            viewer.zoomTo();
            viewer.render();
         });
+      } else if (!isLoading && !pdbData) {
+        // Standby Mode: Load a random structure for aesthetics
+        const standbyPdbs = ['1CRN', '1UBQ', '1BNA', '7LYI'];
+        const randomPdb = standbyPdbs[Math.floor(Math.random() * standbyPdbs.length)];
+        window.$3Dmol.download(`pdb:${randomPdb}`, viewer, {}, (m: any) => {
+           if (!viewer || !m) return;
+           m.setStyle({}, { 
+              cartoon: { color: 'cyan', opacity: 0.08, style: 'oval' },
+              stick: { radius: 0.1, opacity: 0.05 }
+           });
+           viewer.zoomTo();
+           viewer.render();
+        });
       }
 
       // Add resulting docked peptide

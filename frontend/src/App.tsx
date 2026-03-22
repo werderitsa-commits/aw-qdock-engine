@@ -26,6 +26,7 @@ import TourGuide from './components/TourGuide';
 import UserManual from './components/UserManual';
 import Auth from './components/Auth';
 import Settings from './components/Settings';
+import MissionControl from './components/MissionControl';
 import { BACKEND_URL, HEALTH_URL, TARGET_DATABASE, TARGET_CATEGORIES, type TargetEntry } from './targets';
 
 interface DockResponse {
@@ -69,6 +70,7 @@ export default function App() {
   const [showUserManual, setShowUserManual] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
   const [theme, setTheme] = useState<'hollywood' | 'barebone'>('hollywood');
+  const [showMissionControl, setShowMissionControl] = useState(false);
   
   // Finalize engine choice
   const dockingEngine = 'aw-qdock';
@@ -139,7 +141,7 @@ export default function App() {
       
     } catch (err) {
       console.error(err);
-      alert("System Disconnected. Check RunPod endpoint status.");
+      alert("Primary Engine (Modal) and Backup (RunPod) are both unresponsive. Check cloud console stats.");
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +183,7 @@ export default function App() {
         setLightMode={setIsLightMode}
         theme={theme}
         setTheme={setTheme}
+        onOpenMissionControl={() => setShowMissionControl(true)}
       />
 
       {/* Header */}
@@ -190,12 +193,11 @@ export default function App() {
              <div className="w-8 h-8 rounded-none border border-cyan-500/30 flex items-center justify-center bg-cyan-500/5 group hover:border-cyan-500 transition-colors cursor-pointer">
                 <Dna className="w-4 h-4 text-cyan-500 group-hover:scale-110 transition-transform" />
              </div>
-             <div className="flex flex-col leading-none">
+              <div className="flex flex-col leading-none">
                 <div className="flex items-center gap-2">
-                   <h1 className="text-sm font-black tracking-tighter text-white uppercase select-none">AW-QDOCK</h1>
-                   <span className="px-1.5 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-[8px] font-black text-cyan-500 rounded-none uppercase">v1</span>
+                   <h1 className="text-sm font-black tracking-tighter text-white uppercase select-none">AW-QDOCK <span className="text-cyan-500">v1</span></h1>
                 </div>
-                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mt-0.5">Quantum-Integrated Docking Engine</span>
+                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mt-0.5">AW-QDOCK Integrated Engine</span>
              </div>
           </div>
         </div>
@@ -213,13 +215,10 @@ export default function App() {
              )}
            </button>
 
-           <button 
-             onClick={() => { setResult(null); setIsLoading(false); }}
-             className="flex items-center gap-1.5 border border-white/5 bg-black/40 px-3 py-1.5 group cursor-pointer hover:border-cyan-500/30 transition-colors"
-           >
+           <div className="flex items-center gap-1.5 border border-white/5 bg-black/40 px-3 py-1.5 opacity-80 backdrop-blur-sm">
               <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Dashboard</span>
-           </button>
+              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">System Node: Secure</span>
+           </div>
            
            <button className="flex items-center gap-1.5 border border-white/5 bg-black/40 px-3 py-1.5 hover:border-cyan-500/30 transition-colors opacity-50 cursor-not-allowed">
               <Smartphone className="w-3 h-3 text-zinc-500" />
@@ -227,10 +226,13 @@ export default function App() {
            </button>
 
            <div className="flex gap-2">
-              <div className="p-2 border border-white/5 bg-indigo-600/10 flex items-center gap-2">
-                 <Activity className="w-3 h-3 text-indigo-400" />
-                 <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest italic">Insights</span>
-              </div>
+               <div 
+                  onClick={() => setShowMissionControl(true)}
+                  className="p-2 border border-white/5 bg-indigo-600/10 flex items-center gap-2 cursor-pointer hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all active:scale-95 group"
+               >
+                  <Activity className="w-3 h-3 text-indigo-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest italic group-hover:text-indigo-300 transition-colors">Insights</span>
+               </div>
               <button 
                 onClick={() => setShowUserManual(true)}
                 title="Open Manual"
@@ -553,7 +555,7 @@ export default function App() {
 
                      <div className="absolute bottom-[-100px] flex flex-col items-center gap-3">
                         <p className="text-sm font-black uppercase tracking-[1.2em] text-white animate-pulse italic">
-                           {autoMode ? 'AI Guided Search' : 'Quantum Convergence'}
+                           {autoMode ? 'AW-QDOCK running' : 'Quantum Convergence'}
                         </p>
                         <div className="flex items-center gap-4">
                            <Activity className="w-4 h-4 text-cyan-500/50" />
@@ -758,6 +760,12 @@ export default function App() {
            <p className="text-zinc-500">© ADAM WERDERITS 2025-2026</p>
         </div>
       </footer>
+
+      <MissionControl 
+        isOpen={showMissionControl} 
+        onClose={() => setShowMissionControl(false)} 
+        backendUrl={BACKEND_URL}
+      />
     </div>
   );
 }

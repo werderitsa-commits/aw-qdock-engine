@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import List, Optional, Dict
+import json
 try:
     import esm
 except ImportError:
@@ -43,7 +44,7 @@ except ImportError:
     logger.warning("⚛️ AW-QuantumFold Engine module not found. Falling back to simulation mode.")
 
 # Configuration
-REDIS_URL = os.getenv("REDIS_URL", "redis://yamanote.proxy.rlwy.net:33937")
+REDIS_URL = os.getenv("REDIS_URL", "redis://default:iyJnfJpObLSFQrVOBnvTiPQiFsGHlmgZ@yamanote.proxy.rlwy.net:33937")
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY", "sk_test_AWFOLD_PLACEHOLDER")
 stripe.api_key = STRIPE_API_KEY
 
@@ -66,7 +67,7 @@ async def lifespan(app: FastAPI):
     
     # SYSTEM CRITICAL: Set persistent volume path for 30GB ESMFold weights
     # This prevents the 'No space left on device' error by using a mounted RunPod Network Volume
-    PERSISTENT_MODELS_DIR = os.getenv("PERSISTENT_MODELS_DIR", "/models")
+    PERSISTENT_MODELS_DIR = os.getenv("PERSISTENT_MODELS_DIR", "./models")
     os.makedirs(PERSISTENT_MODELS_DIR, exist_ok=True)
     os.environ['TORCH_HOME'] = PERSISTENT_MODELS_DIR
     os.environ['ESM_DIR'] = PERSISTENT_MODELS_DIR
@@ -137,9 +138,81 @@ async def ping():
 async def dock_peptide(request: DockRequest):
     if len(request.sequence) > 768:
         raise HTTPException(status_code=400, detail="Sequence too long (>768aa)")
+    
+    import time
+    start_time = time.perf_counter()
+    engine_used = "Local (Mock)"
+    cost_est = 0.0
+    
+    # helper for dashboard logging
+    async def log_task(engine, duration, status="success"):
+        if r:
+            try:
+                log_entry = {
+                    "timestamp": time.time(),
+                    "engine": engine,
+                    "sequence": request.sequence[:20] + "...",
+                    "duration": duration,
+                    "status": status,
+                    "cost": 0.0001 * duration if engine == "Modal" else 0.0003 * duration # Estimates for A10G/L4
+                }
+                r.lpush("aw_qdock_logs", json.dumps(log_entry))
+                r.ltrim("aw_qdock_logs", 0, 99) # Keep last 100 tasks
+            except Exception as e:
+                logger.warning(f"Failed to log to Redis (possibly Auth issue): {e}")
         
-    if model is None:
-         raise HTTPException(status_code=503, detail="Model still loading...")
+    # GATEWAY LOGIC: Delegate heavy folding to Modal GPU (Primary) or RunPod GPU (Secondary) if local is Mock/CPU
+    MODAL_API_URL = os.getenv("MODAL_API_URL", "https://werderitsa--aw-qdock-v1.modal.run")
+    RUNPOD_ENDPOINT_ID = os.getenv("RUNPOD_ENDPOINT_ID", "60aedmu0t3eleu")
+    RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY")
+    
+    # 1. PRIMARY: Modal Delegation (Fastest Cold Starts)
+    if MODAL_API_URL and ("MockFolder" in str(type(model))):
+        logger.info(f"⚡ Primary: Delegating to Modal GPU cluster ({MODAL_API_URL})")
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=900.0) as client:
+                modal_res = await client.post(MODAL_API_URL, json={"input": request.model_dump()})
+                
+                if modal_res.status_code == 200:
+                    modal_data = modal_res.json()
+                    if "pdb" in modal_data:
+                        logger.success("✅ Modal Primary Response Received.")
+                        await log_task("Modal", time.perf_counter() - start_time)
+                        return DockResponse(**modal_data)
+                else:
+                    logger.error(f"❌ Modal Primary Error {modal_res.status_code}: {modal_res.text}")
+        except Exception as modal_err:
+            logger.error(f"⚠️ Modal Primary Failed: {modal_err}")
+
+    # 2. SECONDARY: RunPod Backup Delegation
+    if RUNPOD_API_KEY and ("MockFolder" in str(type(model))):
+        logger.info(f"🧬 Secondary Backup: Falling back to RunPod GPU ({RUNPOD_ENDPOINT_ID})")
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=900.0) as client:
+                headers = {"Authorization": f"Bearer {RUNPOD_API_KEY}", "Content-Type": "application/json"}
+                
+                if ".api.runpod.ai" in RUNPOD_ENDPOINT_ID:
+                    rp_url = f"{RUNPOD_ENDPOINT_ID}/dock"
+                    payload = {"input": request.model_dump()}
+                else:
+                    rp_url = f"https://api.runpod.ai/v2/{RUNPOD_ENDPOINT_ID}/runsync"
+                    payload = {"input": request.model_dump()}
+
+                rp_res = await client.post(rp_url, json=payload, headers=headers)
+                
+                if rp_res.status_code == 200:
+                    rp_data = rp_res.json()
+                    dock_result = rp_data.get("output", {})
+                    if "pdb" in dock_result:
+                        logger.success("✅ RunPod Backup Response Received.")
+                        await log_task("RunPod", time.perf_counter() - start_time)
+                        return DockResponse(**dock_result)
+                else:
+                    logger.error(f"❌ RunPod Backup Error {rp_res.status_code}")
+        except Exception as rp_err:
+            logger.error(f"⚠️ RunPod Backup Failed: {rp_err}")
 
     try:
         current_seq = request.sequence
@@ -174,7 +247,7 @@ async def dock_peptide(request: DockRequest):
         rmsd_conf = 1.2 if avg_plddt > 90 else 2.5 # Predicted RMSD (Å)
         
         return DockResponse(
-            pdb=base64.b64encode(output.encode()).decode(),
+            pdb=base64.b64encode(output.encode()).decode() if not output.startswith('HEADER') else base64.b64encode(output.encode()).decode(),
             plddt=float(avg_plddt),
             docking_score=float(avg_plddt / 100),
             quantum_fidelity=float(q_fidelity),
@@ -185,7 +258,48 @@ async def dock_peptide(request: DockRequest):
         )
     except Exception as e:
         logger.error(f"Docking failed: {e}")
+        if 'log_task' in locals():
+            await log_task(engine_used, time.perf_counter() - start_time, status=f"failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/stats")
+async def get_stats():
+    if not r:
+        return {"error": "Stats unavailable (Redis disconnected)"}
+    
+    import json
+    try:
+        logs = r.lrange("aw_qdock_logs", 0, -1)
+    except Exception as e:
+        return {"error": f"Redis Error (Possibly Auth): {str(e)}", "summary": {}, "recent_tasks": []}
+    
+    parsed_logs = []
+    for l in logs:
+        try:
+            item = json.loads(l)
+            if isinstance(item, dict):
+                parsed_logs.append(item)
+        except:
+            continue
+    
+    # Aggregate summaries
+    total_tasks = len(parsed_logs)
+    modal_count = sum(1 for l in parsed_logs if l.get('engine') == 'Modal')
+    
+    # Safe mean
+    durations = [l.get('duration', 0) for l in parsed_logs]
+    avg_latency = sum(durations) / total_tasks if total_tasks > 0 else 0
+    total_cost = sum(l.get('cost', 0) for l in parsed_logs)
+    
+    return {
+        "summary": {
+            "total_tasks": total_tasks,
+            "modal_utilization": f"{(modal_count/total_tasks)*100:.1f}%" if total_tasks > 0 else "0%",
+            "avg_latency": f"{avg_latency:.2f}s",
+            "total_estimated_cost": f"${total_cost:.4f}"
+        },
+        "recent_tasks": parsed_logs
+    }
 
 @app.get("/health")
 async def health():

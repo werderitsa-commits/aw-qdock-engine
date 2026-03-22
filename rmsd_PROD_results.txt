@@ -1,0 +1,44 @@
+AW-Qdock RMSD Benchmark
+API endpoint: https://aw-qdock-api-production.up.railway.app
+Auth: Bearer token set
+
+14:55:35 | INFO | 
+============================================================
+14:55:35 | INFO | Benchmarking: GLP-1 (6B15)
+14:55:35 | INFO | Sequence: HAEGTFTSDVSSYLEGQAAK... (31 aa)
+14:55:35 | INFO | Folding with AW-Qdock (ESMFold v1)...
+14:55:35 | INFO | pLDDT: 94.0% | Time: 0.25s
+14:55:35 | INFO | Downloading PDB 6B15 from RCSB...
+14:55:36 | INFO | Saved: /tmp/pdb_cache/6B15.pdb
+14:55:36 | INFO | Computing Cα RMSD vs PDB 6B15 chain B...
+14:55:36 | ERROR | Benchmark failed for GLP-1: Too few Cα atoms to align: pred=1, ref=209
+14:55:36 | INFO | 
+============================================================
+14:55:36 | INFO | Benchmarking: Exendin-4 (3C59)
+14:55:36 | INFO | Sequence: HGEGTFTSDLSKQMEEEAVR... (39 aa)
+14:55:36 | INFO | Folding with AW-Qdock (ESMFold v1)...
+14:55:36 | INFO | pLDDT: 94.0% | Time: 0.20s
+14:55:36 | INFO | Downloading PDB 3C59 from RCSB...
+14:55:37 | INFO | Saved: /tmp/pdb_cache/3C59.pdb
+14:55:37 | INFO | Computing Cα RMSD vs PDB 3C59 chain B...
+14:55:37 | ERROR | Benchmark failed for Exendin-4: Too few Cα atoms to align: pred=1, ref=25
+14:55:37 | INFO | 
+============================================================
+14:55:37 | INFO | Benchmarking: p53-MDM2 binder (1YCR)
+14:55:37 | INFO | Sequence: ETFSDLWKLLPEN... (13 aa)
+14:55:37 | INFO | Folding with AW-Qdock (ESMFold v1)...
+14:55:37 | INFO | pLDDT: 94.0% | Time: 0.22s
+14:55:37 | DEBUG | Cache hit: 1YCR
+14:55:37 | INFO | Computing Cα RMSD vs PDB 1YCR chain B...
+14:55:37 | ERROR | Benchmark failed for p53-MDM2 binder: Too few Cα atoms to align: pred=1, ref=11
+
+================================================================================
+AW-QDOCK v1 — STRUCTURAL ACCURACY BENCHMARK
+ESMFold v1 (fair-esm) | NVIDIA A100-SXM4-80GB | RunPod Serverless
+================================================================================
+        Peptide                   Category Ref PDB pLDDT (%) Cα RMSD (Å) Aligned res. Time (s) Status
+          GLP-1 Metabolic / GLP-1R agonist    6B15      94.0           —            —     0.25 failed
+      Exendin-4  Diabetes / GLP-1R agonist    3C59      94.0           —            —     0.20 failed
+p53-MDM2 binder Oncology / MDM2 antagonist    1YCR      94.0           —            —     0.22 failed
+
+Full results saved to: /tmp/aw_qdock_benchmark.csv

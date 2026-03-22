@@ -1,4 +1,6 @@
-import { X, Moon, Sun, Monitor, Terminal } from 'lucide-react';
+import { useState } from 'react';
+import { X, Moon, Sun, Monitor, Terminal, Shield } from 'lucide-react';
+import { supabase } from '../targets';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -7,6 +9,7 @@ interface SettingsProps {
   setLightMode: (val: boolean) => void;
   theme: 'hollywood' | 'barebone';
   setTheme: (val: 'hollywood' | 'barebone') => void;
+  onOpenMissionControl: () => void;
 }
 
 export default function Settings({ 
@@ -15,9 +18,35 @@ export default function Settings({
   isLightMode, 
   setLightMode, 
   theme, 
-  setTheme 
+  setTheme,
+  onOpenMissionControl
 }: SettingsProps) {
+  const [clickCount, setClickCount] = useState(0);
+  const [showPasscode, setShowPasscode] = useState(false);
+  const [passcode, setPasscode] = useState('');
+  
   if (!isOpen) return null;
+
+  const handleFooterClick = () => {
+    const nextCount = (clickCount as number) + 1;
+    (setClickCount as any)(nextCount);
+    if (nextCount >= 5) {
+       setShowPasscode(true);
+       (setClickCount as any)(0);
+    }
+  };
+
+  const verifyPasscode = () => {
+    if (passcode === 'alchemist') {
+       onOpenMissionControl();
+       onClose();
+       setShowPasscode(false);
+       setPasscode('');
+    } else {
+       alert("INVALID KERNEL ACCESS KEY");
+       setPasscode('');
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -109,13 +138,81 @@ export default function Settings({
                 </div>
              </div>
           </div>
+
+          {/* Security Section */}
+          <div className="space-y-4">
+             <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Security & Authentication</label>
+             <div className="flex flex-col gap-3 p-4 border border-white/5 bg-black/40">
+                <div className="flex flex-col gap-2">
+                   <label className="text-[8px] font-black uppercase text-zinc-400">Update Account Password</label>
+                   <div className="flex gap-2">
+                      <input 
+                        type="password" 
+                        placeholder="New password..." 
+                        id="new-password-input"
+                        className="flex-1 bg-black border border-white/10 px-3 py-1.5 text-[10px] text-white focus:outline-none focus:border-cyan-500/50" 
+                      />
+                      <button 
+                        onClick={async () => {
+                          const pwd = (document.getElementById('new-password-input') as HTMLInputElement).value;
+                          if (!pwd) return;
+                          const { error } = await supabase.auth.updateUser({ password: pwd });
+                          if (error) alert(error.message);
+                          else alert("PASSWORD SYNC SUCCESSFUL");
+                        }}
+                        className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-[8px] font-black uppercase tracking-widest transition-colors"
+                      >
+                        Update
+                      </button>
+                   </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                      <Shield className="w-3.5 h-3.5 text-rose-500" />
+                      <span className="text-[9px] font-black uppercase text-zinc-300">Developer Insights</span>
+                    </div>
+                    <button 
+                      onClick={() => setShowPasscode(!showPasscode)}
+                      className={`px-3 py-1 border text-[7px] font-black uppercase tracking-widest transition-all ${showPasscode ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400' : 'border-white/10 text-zinc-600'}`}
+                    >
+                      {showPasscode ? 'Visible' : 'Hidden'}
+                    </button>
+                 </div>
+              </div>
+           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 bg-black/60 border-t border-white/5 flex items-center justify-center">
-           <p className="text-[8px] font-black uppercase tracking-[0.4em] text-zinc-600">
-             © 2026 AW-QDOCK V1 SYSTEM KERNEL
-           </p>
+        {/* Footer with Hidden Trigger */}
+        <div className="p-4 bg-black/60 border-t border-white/5 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
+           {showPasscode ? (
+             <div className="w-full flex flex-col gap-3 animate-in slide-in-from-bottom-2 duration-300">
+                <label className="text-[8px] font-black uppercase text-cyan-400 tracking-widest text-center">KERNEL ACCESS KEY REQ.</label>
+                <div className="flex gap-2">
+                   <input 
+                     type="password" 
+                     value={passcode}
+                     onChange={(e) => setPasscode(e.target.value)}
+                     className="flex-1 bg-black border border-cyan-500/30 px-3 py-2 text-[10px] text-cyan-400 font-mono focus:outline-none focus:border-cyan-500"
+                     placeholder="Enter Passcode..."
+                     onKeyDown={(e) => e.key === 'Enter' && verifyPasscode()}
+                   />
+                   <button 
+                     onClick={verifyPasscode}
+                     className="px-4 py-2 bg-cyan-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-cyan-500 transition-colors"
+                   >
+                      AUTH
+                   </button>
+                </div>
+             </div>
+           ) : (
+             <button 
+               onClick={handleFooterClick}
+               className="text-[8px] font-black uppercase tracking-[0.4em] text-zinc-700 hover:text-zinc-400 transition-colors"
+             >
+               © 2026 AW-QDOCK V1 SYSTEM KERNEL
+             </button>
+           )}
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // 1. SUPABASE CONFIGURATION
-const supabase_url = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
-const supabase_key = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzg0MDU3MDIsImV4cCI6MTk5NDAxNTcwMn0.placeholder';
+const supabase_url = 'https://rcgchkyotiuwxjsefffv.supabase.co';
+const supabase_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjZ2Noa3lvdGl1d3hqc2VmZmZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMDE3MTcsImV4cCI6MjA4OTY3NzcxN30.XiM68WkaeQ95gZkX1FEvUBbeXo2PSVG-FJOiXE4ZPt4';
 export const supabase = createClient(supabase_url, supabase_key);
 
 // 2. AUTHENTICATION HANDSHAKE
@@ -64,9 +64,12 @@ export const TARGET_DATABASE: Record<string, TargetEntry[]> = {
         { pdb: "1W4Q", name: "IGF-1 Receptor", organ: "Systemic", pathway: "GH / IGF-1 Axis", gene: "IGF1R", cancer: false, description: "Growth-longevity tradeoff receptor" },
         { pdb: "2Y5X", name: "SIRT6", organ: "DNA Repair", pathway: "Sirtuins", gene: "SIRT6", cancer: false, description: "Longevity-linked sirtuin - DNA stability" },
         { pdb: "4Y0D", name: "FOXO3", organ: "Systemic", pathway: "Stress Response", gene: "FOXO3", cancer: false, description: "Longevity-linked transcription factor" },
+        { pdb: "1ZQK", name: "FOXO4 (p53-binder)", organ: "Systemic", pathway: "Senescence", gene: "FOXO4", cancer: false, description: "Intersects with p53 to regulate senescent cell death" },
+        { pdb: "4I5I", name: "SIRT3", organ: "Mitochondria", pathway: "NAD+ / Sirtuins", gene: "SIRT3", cancer: false, description: "Mitochondrial sirtuin - regulates oxidative stress" },
         { pdb: "6B9T", name: "NAMPT", organ: "Metabolism", pathway: "NAD+ Biosynthesis", gene: "NAMPT", cancer: false, description: "Rate-limiting NAD+ enzyme" },
-        { pdb: "5I2B", name: "AMPK", organ: "Metabolism", pathway: "Energy Sensing", gene: "PRKAA1", cancer: false, description: "Master metabolic switch" },
+        { pdb: "5I2B", name: "AMPK (α1β1γ1)", organ: "Metabolism", pathway: "Energy Sensing", gene: "PRKAA1", cancer: false, description: "Master metabolic switch" },
         { pdb: "4RGK", name: "GDF11", organ: "Systemic", pathway: "TGF-beta", gene: "GDF11", cancer: false, description: "Rejuvenation-linked growth factor" },
+        { pdb: "2NVK", name: "PPAR-gamma", organ: "Adipose", pathway: "Lipid Metabolism", gene: "PPARG", cancer: false, description: "Regulator of glucose metabolism and adipogenesis" },
     ],
     "Oncology / Tumor Targets": [
         { pdb: "1NQL", name: "EGFR (ErbB1)", organ: "Lung / Colon", pathway: "EGFR / HER", gene: "EGFR", cancer: true, description: "Non-small cell lung cancer driver" },
@@ -89,6 +92,9 @@ export const TARGET_DATABASE: Record<string, TargetEntry[]> = {
         { pdb: "6OIM", name: "Tau Protein (Paired Fibers)", organ: "Brain", pathway: "Tauopathy", gene: "MAPT", cancer: false, description: "Neurodegenerative fibril target" },
         { pdb: "5I8K", name: "mGluR5", organ: "Brain", pathway: "Glutamate Signaling", gene: "GRM5", cancer: false, description: "Fragile X and addiction receptor" },
         { pdb: "6BQH", name: "Alpha-Synuclein", organ: "CNS", pathway: "Protein Aggregation", gene: "SNCA", cancer: false, description: "Parkinson's / Lewy body target" },
+        { pdb: "1UNL", name: "Cdk5 / p35 activator", organ: "Brain", pathway: "Cdk Signaling", gene: "CDK5/CDK5R1", cancer: false, description: "Neuron-specific cyclin-dependent kinase activator" },
+        { pdb: "7RY0", name: "TREM2 (Extracellular)", organ: "Microglia", pathway: "Immune Response", gene: "TREM2", cancer: false, description: "Alzheimer's risk factor - immune surveillance" },
+        { pdb: "2Y5X", name: "Sirtuin 2 (SIRT2)", organ: "Brain", pathway: "NAD+ Signaling", gene: "SIRT2", cancer: false, description: "Abundant brain sirtuin - tubulin deacetylase" },
     ],
     "Metabolic / Diabetes": [
         { pdb: "1IRK", name: "Insulin Receptor (Kinase)", organ: "Systemic", pathway: "Glucose Homeostasis", gene: "INSR", cancer: false, description: "Diabetes / insulin sensitizer target" },

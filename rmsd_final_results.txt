@@ -1,0 +1,39 @@
+AW-Qdock RMSD Benchmark
+API endpoint: https://aw-qdock-api-production.up.railway.app
+Auth: Bearer token set
+
+14:43:58 | INFO | 
+============================================================
+14:43:58 | INFO | Benchmarking: GLP-1 (6B15)
+14:43:58 | INFO | Sequence: HAEGTFTSDVSSYLEGQAAK... (31 aa)
+14:43:58 | INFO | Folding with AW-Qdock (ESMFold v1)...
+14:48:58 | ERROR | AW-Qdock API failed: HTTPSConnectionPool(host='aw-qdock-api-production.up.railway.app', port=443): Read timed out. (read timeout=300)
+14:48:58 | ERROR | Benchmark failed for GLP-1: HTTPSConnectionPool(host='aw-qdock-api-production.up.railway.app', port=443): Read timed out. (read timeout=300)
+14:48:58 | INFO | 
+============================================================
+14:48:58 | INFO | Benchmarking: Exendin-4 (3C59)
+14:48:58 | INFO | Sequence: HGEGTFTSDLSKQMEEEAVR... (39 aa)
+14:48:58 | INFO | Folding with AW-Qdock (ESMFold v1)...
+14:52:27 | ERROR | AW-Qdock API failed: 502 Server Error: Bad Gateway for url: https://aw-qdock-api-production.up.railway.app/dock
+14:52:27 | ERROR | Benchmark failed for Exendin-4: 502 Server Error: Bad Gateway for url: https://aw-qdock-api-production.up.railway.app/dock
+14:52:27 | INFO | 
+============================================================
+14:52:27 | INFO | Benchmarking: p53-MDM2 binder (1YCR)
+14:52:27 | INFO | Sequence: ETFSDLWKLLPEN... (13 aa)
+14:52:27 | INFO | Folding with AW-Qdock (ESMFold v1)...
+14:52:27 | INFO | pLDDT: 94.0% | Time: 0.23s
+14:52:27 | INFO | Downloading PDB 1YCR from RCSB...
+14:52:28 | INFO | Saved: /tmp/pdb_cache/1YCR.pdb
+14:52:28 | INFO | Computing Cα RMSD vs PDB 1YCR chain B...
+14:52:28 | ERROR | Benchmark failed for p53-MDM2 binder: Too few Cα atoms to align: pred=1, ref=11
+
+================================================================================
+AW-QDOCK v1 — STRUCTURAL ACCURACY BENCHMARK
+ESMFold v1 (fair-esm) | NVIDIA A100-SXM4-80GB | RunPod Serverless
+================================================================================
+        Peptide                   Category Ref PDB pLDDT (%) Cα RMSD (Å) Aligned res. Time (s) Status
+          GLP-1 Metabolic / GLP-1R agonist    6B15         —           —            —        — failed
+      Exendin-4  Diabetes / GLP-1R agonist    3C59         —           —            —        — failed
+p53-MDM2 binder Oncology / MDM2 antagonist    1YCR      94.0           —            —     0.23 failed
+
+Full results saved to: /tmp/aw_qdock_benchmark.csv

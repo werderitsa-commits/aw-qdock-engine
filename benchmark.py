@@ -7,12 +7,19 @@ import json
 # Compares AW-Qdock (Local/Quantum-Boosted) against baseline metrics for HPEP, PEPFOLD, and HADDOCK
 
 TARGETS = [
-    {"name": "TGFBR2 (Hair)", "seq": "TGFBR2_FRAGMENT_HADEGTFTSDVSSYLDGQAAKEFIAWLVKGGR"},
-    {"name": "mTOR (Longevity)", "seq": "MTOR_BINDING_PEPTIDE_GEPPPGKPADDA"},
-    {"name": "PD-L1 (Oncology)", "seq": "PDL1_BLOCKER_TYR_VAL_PHE_TRP"}
+    {"name": "GLP-1 (Metabolic)", "seq": "HAEGTFTSDVSSYLEGQAAKEFIAWLVKGRG"},
+    {"name": "Exendin-4 (Diabetes)", "seq": "HGEGTFTSDLSKQMEEEAVRLFIEWLKNGGPSSGAPPPS"},
+    {"name": "p53-Binder (Oncology)", "seq": "SQETFSDLWKLLPEN"},
+    {"name": "TGFBR2-Fragment (Hair)", "seq": "KADEGTFTSDVSSYLDGQAAKEFIAW"},
+    {"name": "IGF-1 (Longevity)", "seq": "GPETLCGAELVDALQFVCGDRGFYFNKPTGYGSSSR"},
+    {"name": "Tau-Peb (Neuro)", "seq": "VQIINKKLD"},
+    {"name": "TNF-alpha-Blocker (Immune)", "seq": "VTYLTGWL"},
+    {"name": "ACE2-Mimetic (Viral)", "seq": "IEQWLL"},
+    {"name": "Insulin-A (Metabolic)", "seq": "GIVEQCCTSICSLYQLENYCN"},
+    {"name": "Insulin-B (Metabolic)", "seq": "FVNQHLCGSHLVEALYLVCGERGFFYTPKT"}
 ]
 
-BACKEND_URL = "http://localhost:8000/dock"
+BACKEND_URL = "https://aw-qdock-api-production.up.railway.app/dock"
 
 def run_benchmark():
     print("🚀 Initiating AW-Qdock Competitive Benchmark...")
@@ -35,7 +42,7 @@ def run_benchmark():
             resp = requests.post(BACKEND_URL, json={
                 "sequence": target['seq'],
                 "quantum_boost": True
-            }, timeout=10)
+            }, timeout=900)
             elapsed = (time.time() - start_time) * 1000 # ms
             
             data = resp.json()
